@@ -58,12 +58,11 @@ def push_log(level: str, message: str, extra: dict | None = None) -> None:
 def calculate_payment_fee(amount: float) -> float:
     """Calculate the processing fee.
 
-    Returns fixed fee for zero or negative amounts.
+    Returns fixed fee for all amounts.
     """
-    if amount <= 0:
+    if amount < 0:
         return FIXED_FEE
-    fee = FIXED_FEE / amount
-    return round(fee, 4)
+    return FIXED_FEE
 
 
 # ── FastAPI app ───────────────────────────────────────────────────────────────
