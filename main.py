@@ -58,10 +58,11 @@ def push_log(level: str, message: str, extra: dict | None = None) -> None:
 def calculate_payment_fee(amount: float) -> float:
     """Calculate the processing fee.
 
-    BUG: Raises ZeroDivisionError when amount=0.
-    Fix: guard with `if amount <= 0: return FIXED_FEE`
+    Returns fixed fee when amount is zero or negative.
     """
-    fee = FIXED_FEE / amount  # ZeroDivisionError when amount == 0
+    if amount <= 0:
+        return FIXED_FEE
+    fee = FIXED_FEE / amount
     return round(fee, 4)
 
 
