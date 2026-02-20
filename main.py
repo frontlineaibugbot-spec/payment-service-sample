@@ -61,6 +61,8 @@ def calculate_payment_fee(amount: float) -> float:
     BUG: Raises ZeroDivisionError when amount=0.
     Fix: guard with `if amount <= 0: return FIXED_FEE`
     """
+    if amount <= 0:
+        return FIXED_FEE
     fee = FIXED_FEE / amount  # ZeroDivisionError when amount == 0
     return round(fee, 4)
 
