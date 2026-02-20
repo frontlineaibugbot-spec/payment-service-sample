@@ -3,14 +3,6 @@ payment-service-sample
 
 A sample payment processing service for Bug Bot demo.
 Logs are pushed to Grafana Loki on every API call (info on success, error on failure).
-
-Deliberately buggy endpoints and the errors they raise:
-  POST /process-payment  → ZeroDivisionError   when amount=0
-  POST /refund           → KeyError            when reason is not a known code
-  GET  /transaction/{id} → ValueError          when transaction_id is non-numeric
-  POST /batch-payment    → IndexError          when payments list is empty
-  GET  /exchange-rate    → KeyError            when currency pair is unsupported
-  POST /calculate-tax    → TypeError           when country_code is unknown
 """
 
 import json
