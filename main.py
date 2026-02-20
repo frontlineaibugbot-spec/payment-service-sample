@@ -17,7 +17,7 @@ from pydantic import BaseModel
 # ── Config ────────────────────────────────────────────────────────────────────
 
 LOKI_PUSH_URL = "http://localhost:3100/loki/api/v1/push"
-SERVICE = "payment-service"
+SERVICE = "payment-service-sample"
 ENV = "local"
 FIXED_FEE = 2.50  # processing fee in dollars
 
