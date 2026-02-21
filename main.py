@@ -328,7 +328,13 @@ def get_exchange_rate(from_currency: str, to_currency: str):
         "to_currency": to_currency,
     })
     try:
-        rate = EXCHANGE_RATES[from_currency][to_currency]  # KeyError for unsupported pair
+        # Validate currencies exist before accessing
+        if from_currency not in EXCHANGE_RATES:
+            raise KeyError(f"unsupported source currency: {from_currency}")
+        if to_currency not in EXCHANGE_RATES[from_currency]:
+            raise KeyError(f"unsupported target currency: {to_currency}")
+        
+        rate = EXCHANGE_RATES[from_currency][to_currency]
         push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
             "from_currency": from_currency,
             "to_currency": to_currency,
