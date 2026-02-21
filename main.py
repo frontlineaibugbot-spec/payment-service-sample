@@ -319,40 +319,52 @@ EXCHANGE_RATES: dict[str, dict[str, float]] = {
 def get_exchange_rate(from_currency: str, to_currency: str):
     """Return the live exchange rate between two supported currencies.
 
-    BUG: KeyError when from_currency or to_currency is not in EXCHANGE_RATES
-         (e.g. from_currency="JPY" or to_currency="AUD").
-    Fix: validate currencies against EXCHANGE_RATES.keys() before subscripting.
+    Fixed: Validate currencies before dictionary access to prevent KeyError.
+    Returns HTTP 400 for unsupported currency pairs instead of HTTP 500.
     """
     push_log("info", f"Exchange rate requested: {from_currency} -> {to_currency}", {
         "from_currency": from_currency,
         "to_currency": to_currency,
     })
-    try:
-        rate = EXCHANGE_RATES[from_currency][to_currency]  # KeyError for unsupported pair
-        push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
+    
+    # Validate from_currency
+    if from_currency not in EXCHANGE_RATES:
+        push_log("warn", f"Unsupported from_currency: {from_currency}", {
             "from_currency": from_currency,
             "to_currency": to_currency,
-            "rate": rate,
+            "http_status": 400,
         })
-        return {
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"Currency '{from_currency}' is not supported. Supported currencies: {', '.join(EXCHANGE_RATES.keys())}",
+            "from_currency": from_currency,
+        })
+    
+    # Validate to_currency
+    if to_currency not in EXCHANGE_RATES[from_currency]:
+        push_log("warn", f"Unsupported to_currency: {to_currency} for {from_currency}", {
             "from_currency": from_currency,
             "to_currency": to_currency,
-            "rate": rate,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-    except KeyError as exc:
-        tb = traceback.format_exc()
-        push_log("error", f"KeyError fetching exchange rate {from_currency}->{to_currency}: unsupported currency", {
-            "from_currency": from_currency,
+            "http_status": 400,
+        })
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"Currency pair '{from_currency} -> {to_currency}' is not supported. Supported target currencies for {from_currency}: {', '.join(EXCHANGE_RATES[from_currency].keys())}",
             "to_currency": to_currency,
-            "error": "KeyError",
-            "traceback": tb,
-            "http_status": 500,
         })
-        raise HTTPException(status_code=500, detail={
-            "error": "KeyError",
-            "message": f"unsupported currency pair: {from_currency} -> {to_currency}",
-        })
+    
+    rate = EXCHANGE_RATES[from_currency][to_currency]
+    push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "rate": rate,
+    })
+    return {
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "rate": rate,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 # ── Tax Calculation API ───────────────────────────────────────────────────────
