@@ -327,8 +327,34 @@ def get_exchange_rate(from_currency: str, to_currency: str):
         "from_currency": from_currency,
         "to_currency": to_currency,
     })
+    
+    # Validate from_currency before accessing dictionary
+    if from_currency not in EXCHANGE_RATES:
+        push_log("warn", f"Unsupported from_currency: {from_currency}", {
+            "from_currency": from_currency,
+            "supported_currencies": list(EXCHANGE_RATES.keys()),
+        })
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"from_currency '{from_currency}' is not supported. Supported currencies: {', '.join(EXCHANGE_RATES.keys())}",
+            "from_currency": from_currency,
+        })
+    
+    # Validate to_currency before accessing nested dictionary
+    if to_currency not in EXCHANGE_RATES[from_currency]:
+        push_log("warn", f"Unsupported to_currency: {to_currency} for {from_currency}", {
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "supported_currencies": list(EXCHANGE_RATES[from_currency].keys()),
+        })
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"to_currency '{to_currency}' is not supported for {from_currency}. Supported currencies: {', '.join(EXCHANGE_RATES[from_currency].keys())}",
+            "to_currency": to_currency,
+        })
+    
     try:
-        rate = EXCHANGE_RATES[from_currency][to_currency]  # KeyError for unsupported pair
+        rate = EXCHANGE_RATES[from_currency][to_currency]
         push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
             "from_currency": from_currency,
             "to_currency": to_currency,
