@@ -319,16 +319,43 @@ EXCHANGE_RATES: dict[str, dict[str, float]] = {
 def get_exchange_rate(from_currency: str, to_currency: str):
     """Return the live exchange rate between two supported currencies.
 
-    BUG: KeyError when from_currency or to_currency is not in EXCHANGE_RATES
-         (e.g. from_currency="JPY" or to_currency="AUD").
-    Fix: validate currencies against EXCHANGE_RATES.keys() before subscripting.
+    FIXED: Added validation to check if currencies are supported before accessing EXCHANGE_RATES.
     """
     push_log("info", f"Exchange rate requested: {from_currency} -> {to_currency}", {
         "from_currency": from_currency,
         "to_currency": to_currency,
     })
+    
+    # Validate from_currency is supported
+    if from_currency not in EXCHANGE_RATES:
+        push_log("warn", f"Unsupported from_currency: {from_currency}", {
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "supported_currencies": list(EXCHANGE_RATES.keys()),
+            "http_status": 400,
+        })
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"unsupported from_currency: {from_currency}",
+            "supported_currencies": list(EXCHANGE_RATES.keys()),
+        })
+    
+    # Validate to_currency is supported for the given from_currency
+    if to_currency not in EXCHANGE_RATES[from_currency]:
+        push_log("warn", f"Unsupported to_currency: {to_currency} for {from_currency}", {
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "supported_currencies": list(EXCHANGE_RATES[from_currency].keys()),
+            "http_status": 400,
+        })
+        raise HTTPException(status_code=400, detail={
+            "error": "unsupported_currency",
+            "message": f"unsupported to_currency: {to_currency}",
+            "supported_currencies": list(EXCHANGE_RATES[from_currency].keys()),
+        })
+    
     try:
-        rate = EXCHANGE_RATES[from_currency][to_currency]  # KeyError for unsupported pair
+        rate = EXCHANGE_RATES[from_currency][to_currency]
         push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
             "from_currency": from_currency,
             "to_currency": to_currency,
