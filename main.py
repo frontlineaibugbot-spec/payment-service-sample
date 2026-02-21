@@ -315,16 +315,18 @@ EXCHANGE_RATES: dict[str, dict[str, float]] = {
 }
 
 
-@app.get("/exchange-rate")
-def get_exchange_rate(from_currency: str, to_currency: str):
-    """Return the live exchange rate between two supported currencies."""
-    push_log("info", f"Exchange rate requested: {from_currency} -> {to_currency}", {
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-    })
+def validate_currency(from_currency: str, to_currency: str) -> None:
+    """Validate that the currency pair is supported in EXCHANGE_RATES.
     
-    # Validate currencies before accessing dictionary
+    Args:
+        from_currency: Source currency code
+        to_currency: Target currency code
+        
+    Raises:
+        HTTPException: 400 error if either currency is unsupported
+    """
     supported_currencies = list(EXCHANGE_RATES.keys())
+    
     if from_currency not in EXCHANGE_RATES:
         push_log("warn", f"Unsupported from_currency: {from_currency}", {
             "from_currency": from_currency,
@@ -350,6 +352,18 @@ def get_exchange_rate(from_currency: str, to_currency: str):
             "message": f"Unsupported currency pair: {from_currency} -> {to_currency}",
             "supported_currencies": supported_currencies,
         })
+
+
+@app.get("/exchange-rate")
+def get_exchange_rate(from_currency: str, to_currency: str):
+    """Return the live exchange rate between two supported currencies."""
+    push_log("info", f"Exchange rate requested: {from_currency} -> {to_currency}", {
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+    })
+    
+    # Validate currencies
+    validate_currency(from_currency, to_currency)
     
     rate = EXCHANGE_RATES[from_currency][to_currency]
     push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
