@@ -315,6 +315,22 @@ EXCHANGE_RATES: dict[str, dict[str, float]] = {
 }
 
 
+def validate_currency(from_currency: str, to_currency: str) -> None:
+    """Validate that a currency pair exists in EXCHANGE_RATES.
+    
+    Args:
+        from_currency: Source currency code
+        to_currency: Target currency code
+    
+    Raises:
+        KeyError: If either currency is not supported
+    """
+    if from_currency not in EXCHANGE_RATES:
+        raise KeyError(f"unsupported source currency: {from_currency}")
+    if to_currency not in EXCHANGE_RATES[from_currency]:
+        raise KeyError(f"unsupported target currency: {to_currency}")
+
+
 @app.get("/exchange-rate")
 def get_exchange_rate(from_currency: str, to_currency: str):
     """Return the live exchange rate between two supported currencies.
@@ -328,12 +344,7 @@ def get_exchange_rate(from_currency: str, to_currency: str):
         "to_currency": to_currency,
     })
     try:
-        # Validate currencies exist before accessing
-        if from_currency not in EXCHANGE_RATES:
-            raise KeyError(f"unsupported source currency: {from_currency}")
-        if to_currency not in EXCHANGE_RATES[from_currency]:
-            raise KeyError(f"unsupported target currency: {to_currency}")
-        
+        validate_currency(from_currency, to_currency)
         rate = EXCHANGE_RATES[from_currency][to_currency]
         push_log("info", f"Exchange rate {from_currency}->{to_currency} = {rate}", {
             "from_currency": from_currency,
