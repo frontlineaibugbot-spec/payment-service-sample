@@ -5,6 +5,7 @@ EXCHANGE_RATES: MappingProxyType = MappingProxyType({
     "USD": MappingProxyType({"EUR": 0.92, "GBP": 0.79, "INR": 83.12}),
     "EUR": MappingProxyType({"USD": 1.09, "GBP": 0.86, "INR": 90.45}),
     "GBP": MappingProxyType({"USD": 1.27, "EUR": 1.16, "INR": 105.23}),
+    "INR": MappingProxyType({"USD": 0.0120, "EUR": 0.0111, "GBP": 0.0095}),
 })
 
 
