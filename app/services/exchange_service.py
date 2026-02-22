@@ -2,6 +2,7 @@ EXCHANGE_RATES: dict[str, dict[str, float]] = {
     "USD": {"EUR": 0.92, "GBP": 0.79, "INR": 83.12},
     "EUR": {"USD": 1.09, "GBP": 0.86, "INR": 90.45},
     "GBP": {"USD": 1.27, "EUR": 1.16, "INR": 105.23},
+    "INR": {"USD": 0.0120, "EUR": 0.0111, "GBP": 0.0095},
 }
 
 
